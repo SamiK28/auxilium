@@ -1,0 +1,7 @@
+packages.json --node dependencies
+To install the required node modules on your machine : npm install
+
+Additional APIs and packages:
+    npm web3
+    npm maticjs
+    npm solcjs
