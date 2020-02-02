@@ -1,6 +1,4 @@
-/* eslint-disable */
 import web3 from './web3';
-
 const address = '0x9fc1a2e85b3ae6b4b0a36146929f2c1a860689af';
 const abi = [
     {
@@ -83,5 +81,4 @@ const abi = [
 ];
 
 const instance = new web3.eth.Contract(abi, address);
-
 export default instance;

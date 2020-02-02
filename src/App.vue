@@ -193,7 +193,6 @@
 </template>
 
 <script>
-// We import our the scripts for the smart contract instantiation, and web3
 import crowdfundInstance from '../contracts/crowdfundInstance';
 import crowdfundProject from '../contracts/crowdfundProjectInstance';
 import web3 from '../contracts/web3';
@@ -214,7 +213,6 @@ export default {
     };
   },
   mounted() {
-    // this code snippet takes the account (wallet) that is currently active
     web3.eth.getAccounts().then((accounts) => {
       [this.account] = accounts;
       this.getProjects();
@@ -269,7 +267,6 @@ export default {
         this.projectData[index].currentAmount = newTotal;
         this.projectData[index].isLoading = false;
 
-        // Set project state to success
         if (newTotal >= projectGoal) {
           this.projectData[index].currentState = 2;
         }

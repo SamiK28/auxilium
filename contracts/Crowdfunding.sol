@@ -1,16 +1,61 @@
-// We will be using Solidity version 0.5.4
 pragma solidity 0.5.4;
-// Importing OpenZeppelin's SafeMath Implementation
-import 'https://github.com/OpenZeppelin/openzeppelin-solidity/contracts/math/SafeMath.sol';
 
+library SafeMath {
+    function add(uint256 a, uint256 b) internal pure returns (uint256) {
+        uint256 c = a + b;
+        require(c >= a, "SafeMath: addition overflow");
+
+        return c;
+    }
+
+    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
+        return sub(a, b, "SafeMath: subtraction overflow");
+    }
+
+    function sub(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+        require(b <= a, errorMessage);
+        uint256 c = a - b;
+
+        return c;
+    }
+
+    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
+
+        if (a == 0) {
+            return 0;
+        }
+
+        uint256 c = a * b;
+        require(c / a == b, "SafeMath: multiplication overflow");
+
+        return c;
+    }
+
+    function div(uint256 a, uint256 b) internal pure returns (uint256) {
+        return div(a, b, "SafeMath: division by zero");
+    }
+
+    function div(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+        require(b > 0, errorMessage);
+        uint256 c = a / b;
+        return c;
+    }
+
+    function mod(uint256 a, uint256 b) internal pure returns (uint256) {
+        return mod(a, b, "SafeMath: modulo by zero");
+    }
+
+    function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
+        require(b != 0, errorMessage);
+        return a % b;
+    }
+}
 
 contract Crowdfunding {
     using SafeMath for uint256;
 
-    // List of existing projects
     Project[] private projects;
 
-    // Event that will be emitted whenever a new project is started
     event ProjectStarted(
         address contractAddress,
         address projectStarter,
@@ -20,12 +65,6 @@ contract Crowdfunding {
         uint256 goalAmount
     );
 
-    /** @dev Function to start a new project.
-      * @param title Title of the project to be created
-      * @param description Brief description about the project
-      * @param durationInDays Project deadline in days
-      * @param amountToRaise Project goal in wei
-      */
     function startProject(
         string calldata title,
         string calldata description,
@@ -45,48 +84,39 @@ contract Crowdfunding {
         );
     }                                                                                                                                   
 
-    /** @dev Function to get all projects' contract addresses.
-      * @return A list of all projects' contract addreses
-      */
     function returnAllProjects() external view returns(Project[] memory){
         return projects;
     }
 }
 
-
 contract Project {
     using SafeMath for uint256;
-    
-    // Data structures
+
     enum State {
         Fundraising,
         Expired,
         Successful
     }
 
-    // State variables
     address payable public creator;
-    uint public amountGoal; // required to reach at least this much, else everyone gets refund
+    uint public amountGoal; 
     uint public completeAt;
     uint256 public currentBalance;
     uint public raiseBy;
     string public title;
     string public description;
-    State public state = State.Fundraising; // initialize on create
+    State public state = State.Fundraising; 
     mapping (address => uint) public contributions;
 
-    // Event that will be emitted whenever funding will be received
     event FundingReceived(address contributor, uint amount, uint currentTotal);
-    // Event that will be emitted whenever the project starter has received the funds
     event CreatorPaid(address recipient);
 
-    // Modifier to check current state
+
     modifier inState(State _state) {
         require(state == _state);
         _;
     }
 
-    // Modifier to check if the function caller is the project creator
     modifier isCreator() {
         require(msg.sender == creator);
         _;
@@ -108,8 +138,6 @@ contract Project {
         currentBalance = 0;
     }
 
-    /** @dev Function to fund a certain project.
-      */
     function contribute() external inState(State.Fundraising) payable {
         require(msg.sender != creator);
         contributions[msg.sender] = contributions[msg.sender].add(msg.value);
@@ -118,8 +146,6 @@ contract Project {
         checkIfFundingCompleteOrExpired();
     }
 
-    /** @dev Function to change the project state depending on conditions.
-      */
     function checkIfFundingCompleteOrExpired() public {
         if (currentBalance >= amountGoal) {
             state = State.Successful;
@@ -130,8 +156,6 @@ contract Project {
         completeAt = now;
     }
 
-    /** @dev Function to give the received funds to project starter.
-      */
     function payOut() internal inState(State.Successful) returns (bool) {
         uint256 totalRaised = currentBalance;
         currentBalance = 0;
@@ -147,8 +171,6 @@ contract Project {
         return false;
     }
 
-    /** @dev Function to retrieve donated amount when a project expires.
-      */
     function getRefund() public inState(State.Expired) returns (bool) {
         require(contributions[msg.sender] > 0);
 
@@ -165,9 +187,6 @@ contract Project {
         return true;
     }
 
-    /** @dev Function to get specific information about the project.
-      * @return Returns all the project's details
-      */
     function getDetails() public view returns 
     (
         address payable projectStarter,
